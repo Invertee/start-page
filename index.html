@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ಠಿ_ಠ </title>
+    <link rel="stylesheet" href="./vendor/bulma/css/bulma.min.css">
+    <link rel="stylesheet" href="./vendor/fa-all.min.css">
+    <link rel="stylesheet" href="./style/style.css">
+</head>
+<body id="body-bg">
+
+    <nav class="navbar is-transparent" role="navigation">
+        <div class="navbar-brand">
+            <div class="navbar-item">
+                <div class="navbar-items" id="time-btn"></div>
+            </div>
+        </div>
+        <div class="navbar-menu">
+            <div class="navbar-end">
+                <div class="navbar-item">
+                    <div class="navbar-items" id="weather-btn"></div>
+                </div>
+                <div class="navbar-item">
+                    <button id="config-btn" class="button is-dark is-inverted is-outlined is-small">
+                        <span class="icon"><i class="fas fa-cog"></i></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="v-center-wrapper">
+        <div class="container px-4">
+            <div class="columns is-centered is-multiline is-variable is-1" id="link-grid">
+                </div>
+        </div>
+    </div>
+
+    <div id="config-modal" class="modal">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title">Settings</p>
+                <button class="delete" id="close-btn"></button>
+            </header>
+            <section class="modal-card-body">
+                <div class="field">
+                    <label class="label">Wallpaper URL</label>
+                    <input class="input is-small" type="text" id="wallpaper-input">
+                </div>
+                <div class="columns">
+                    <div class="column">
+                        <label class="label">Latitude</label>
+                        <input class="input is-small" type="text" id="lat-input">
+                    </div>
+                    <div class="column">
+                        <label class="label">Longitude</label>
+                        <input class="input is-small" type="text" id="lon-input">
+                    </div>
+                </div>
+                <hr>
+                <div id="menu-editor-list"></div>
+                <button class="button is-small is-link is-light is-fullwidth mt-2" id="add-category-btn">+ Add Category</button>
+            </section>
+            <footer class="modal-card-foot">
+                <button class="button is-success" id="save-btn">Save Changes</button>
+            </footer>
+        </div>
+    </div>
+
+    <script src="./vendor/moment.min.js"></script>
+    <script src="./js/index.js"></script>
+</body>
+</html>

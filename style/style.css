@@ -1,0 +1,85 @@
+@font-face{
+    font-family: "Lekton";
+    src: url("./webfonts/Lekton.ttf") format("truetype");
+}
+
+body {
+    margin: 0;
+    color: white;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    overflow: hidden;
+    font-family: 'Lekton', monospace
+}
+
+/* Centering Logic */
+.v-center-wrapper {
+    flex-grow: 1;
+    display: flex;
+    align-items: center; /* Vertical */
+    justify-content: center; /* Horizontal */
+}
+
+/* Navbar Transparency & Size */
+.navbar {
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(8px);
+    min-height: 2rem !important;
+    padding: 0.2rem 0.4rem !important;
+    font-weight: bold;
+    color: white !important;
+}
+
+/* Bulma Panel "Shrink" Overrides */
+.panel {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    border: none;
+    min-width: 170px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.panel-heading {
+    padding: 0.8rem 0.9rem !important;
+    font-size: 1.1rem !important;
+    font-weight: bold;
+    color: white !important;
+}
+
+.panel-block {
+    padding: 0.3rem 0.8rem !important;
+    color: #eee !important;
+    border-color: rgba(255,255,255,0.05) !important;
+    font-size: 0.95rem;
+}
+
+.panel-block:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.panel-icon {
+    font-size: 1.1rem;
+    margin-right: 0.5rem !important;
+}
+
+/* Config Editor Box */
+.category-edit-box {
+    background: #f0f0f0;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    color: #333;
+}
+
+/* disable scrollbar */
+body::-webkit-scrollbar {
+    display: none;
+}
+
+.navbar-items {
+    color:white;
+}
