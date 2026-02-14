@@ -63,7 +63,13 @@
                 <button class="button is-small is-link is-light is-fullwidth mt-2" id="add-category-btn">+ Add Category</button>
             </section>
             <footer class="modal-card-foot">
-                <button class="button is-success" id="save-btn">Save Changes</button>
+                <div style="width:100%; display:flex; gap:8px;">
+                    <button class="button is-light" id="export-btn">Export Config</button>
+                    <label class="button is-light" for="import-file-input" id="import-btn">Import Config</label>
+                    <input type="file" id="import-file-input" accept="application/json" style="display:none">
+                    <div style="flex:1"></div>
+                    <button class="button is-success" id="save-btn">Save Changes</button>
+                </div>
             </footer>
         </div>
     </div>

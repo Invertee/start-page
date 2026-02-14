@@ -110,7 +110,13 @@ function renderEditor() {
             <div class="columns is-mobile is-gapless mb-2">
                 <div class="column"><input class="input is-small" value="${cat.title}" onchange="config.categories[${cIdx}].title=this.value"></div>
                 <div class="column is-narrow mx-1"><input type="color" value="${cat.color}" onchange="config.categories[${cIdx}].color=this.value"></div>
-                <div class="column is-narrow"><button class="button is-danger is-small" onclick="config.categories.splice(${cIdx},1);renderEditor()">&times;</button></div>
+                <div class="column is-narrow">
+                    <div style="display:flex; gap:6px;">
+                        <button class="button is-small" onclick="moveCategory(${cIdx}, -1)">&#8593;</button>
+                        <button class="button is-small" onclick="moveCategory(${cIdx}, 1)">&#8595;</button>
+                        <button class="button is-danger is-small" onclick="config.categories.splice(${cIdx},1);renderEditor()">&times;</button>
+                    </div>
+                </div>
             </div>
             <div id="links-${cIdx}"></div>
             <button class="button is-small is-fullwidth mt-1" onclick="config.categories[${cIdx}].links.push({name:'',url:'',icon:'fas fa-link'});renderEditor()">+ Link</button>
@@ -122,12 +128,76 @@ function renderEditor() {
                 <input class="input is-small mr-1" placeholder="Name" value="${link.name}" onchange="config.categories[${cIdx}].links[${lIdx}].name=this.value">
                 <input class="input is-small mr-1" placeholder="URL" value="${link.url}" onchange="config.categories[${cIdx}].links[${lIdx}].url=this.value">
                 <input class="input is-small mr-1" placeholder="Icon" value="${link.icon}" onchange="config.categories[${cIdx}].links[${lIdx}].icon=this.value">
-                <button class="button is-small" onclick="config.categories[${cIdx}].links.splice(${lIdx},1);renderEditor()">&times;</button>
+                <div style="display:flex; gap:6px;">
+                    <button class="button is-small" onclick="moveLink(${cIdx}, ${lIdx}, -1)">&#8593;</button>
+                    <button class="button is-small" onclick="moveLink(${cIdx}, ${lIdx}, 1)">&#8595;</button>
+                    <button class="button is-small" onclick="config.categories[${cIdx}].links.splice(${lIdx},1);renderEditor()">&times;</button>
+                </div>
             `;
             div.querySelector(`#links-${cIdx}`).appendChild(row);
         });
         list.appendChild(div);
     });
+}
+
+function moveArrayItem(arr, from, to) {
+    if (to < 0 || to >= arr.length) return;
+    const item = arr.splice(from, 1)[0];
+    arr.splice(to, 0, item);
+}
+
+function moveCategory(idx, dir) {
+    const to = idx + dir;
+    moveArrayItem(config.categories, idx, to);
+    renderEditor();
+}
+
+function moveLink(catIdx, linkIdx, dir) {
+    const links = config.categories[catIdx].links;
+    const to = linkIdx + dir;
+    moveArrayItem(links, linkIdx, to);
+    renderEditor();
+}
+
+function exportConfig() {
+    try {
+        const data = JSON.stringify(config, null, 2);
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'page-config.json';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    } catch (e) {
+        alert('Export failed');
+    }
+}
+
+function handleImportFile(evt) {
+    const file = evt.target.files && evt.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+        try {
+            const parsed = JSON.parse(reader.result);
+            if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.categories)) {
+                alert('Invalid config file');
+                return;
+            }
+            config = parsed;
+            localStorage.setItem('PageConfig', JSON.stringify(config));
+            renderEditor();
+            renderPage();
+            alert('Config imported');
+        } catch (e) {
+            alert('Failed to read config: ' + e.message);
+        }
+    };
+    reader.readAsText(file);
+    evt.target.value = '';
 }
 
 function init() {
@@ -137,6 +207,8 @@ function init() {
     document.getElementById('config-btn').onclick = () => { renderEditor(); mod.classList.add('is-active'); };
     document.getElementById('close-btn').onclick = () => mod.classList.remove('is-active');
     document.getElementById('add-category-btn').onclick = () => { config.categories.push({title:'/new', color:'#3273dc', links:[]}); renderEditor(); };
+    document.getElementById('export-btn').onclick = exportConfig;
+    document.getElementById('import-file-input').addEventListener('change', handleImportFile);
     document.getElementById('save-btn').onclick = () => {
         config.wallpaper = document.getElementById('wallpaper-input').value;
         config.weatherLat = document.getElementById('lat-input').value;
