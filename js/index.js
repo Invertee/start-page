@@ -2,11 +2,34 @@ let config = JSON.parse(localStorage.getItem('PageConfig')) || {
     wallpaper: './img/wp.jpg',
     weatherLat: '',
     weatherLon: '',
+    openCount: 0,
+    openCountDate: '',
     categories: [
         { title: "/dev", color: "#48c774", links: [{ name: "Github", url: "https://github.com", icon: "fa-brands fa-github" }] },
         { title: "/social", color: "#3273dc", links: [{ name: "Reddit", url: "https://reddit.com", icon: "fa-brands fa-reddit-alien" }] }
     ]
 };
+
+function getTodayDateStr() {
+    const d = new Date();
+    return d.toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+function updateOpenCountTag() {
+    const el = document.getElementById('open-count-tag');
+    if (!el) return;
+    el.textContent = (config.openCount || 0).toString();
+}
+
+function ensureAndIncrementOpenCount() {
+    const today = getTodayDateStr();
+    if (!config.openCountDate || config.openCountDate !== today) {
+        config.openCount = 0;
+        config.openCountDate = today;
+    }
+    config.openCount = (config.openCount || 0) + 1;
+    localStorage.setItem('PageConfig', JSON.stringify(config));
+}
 
 function hexToRgba(hex, alpha = 0.7) {
     hex = hex.replace(/^#/, '');
@@ -43,6 +66,7 @@ function renderPage() {
         grid.appendChild(col);
     });
     fetchWeather();
+    updateOpenCountTag();
 }
 
 function updateTimeandDate() {
@@ -201,6 +225,7 @@ function handleImportFile(evt) {
 }
 
 function init() {
+    ensureAndIncrementOpenCount();
     renderPage();
     setInterval(updateTimeandDate, 200);
     const mod = document.getElementById('config-modal');
