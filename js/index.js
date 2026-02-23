@@ -80,6 +80,12 @@ async function fetchWeather() {
     }
     try {
         const url = `https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${config.weatherLat}&lon=${config.weatherLon}`;
+        // Ask service worker to fetch & cache the weather data (best-effort)
+        if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
+            navigator.serviceWorker.ready.then(reg => {
+                if (reg && reg.active) reg.active.postMessage({ type: 'CACHE_WEATHER', url });
+            }).catch(() => {});
+        }
         const res = await fetch(url, {});
         const data = await res.json();
         const timeseries = data.properties.timeseries;
@@ -225,6 +231,10 @@ function handleImportFile(evt) {
 }
 
 function init() {
+    // Register service worker for offline caching (best-effort)
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
     ensureAndIncrementOpenCount();
     renderPage();
     setInterval(updateTimeandDate, 200);
