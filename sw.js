@@ -8,7 +8,15 @@ const STATIC_ASSETS = [
     '/vendor/fa-all.min.css',
     '/vendor/moment.min.js',
     '/vendor/bulma/css/bulma.min.css',
-    '/img/wp.jpg'
+    '/img/wp.jpg',
+    '/favicon.ico',
+    '/webfonts/fa-regular-400.woff2',
+    '/webfonts/fa-brands-400.woff2',
+    '/webfonts/fa-solid-900.woff2',
+    '/webfonts/fa-regular-400.ttf',
+    '/webfonts/fa-brands-400.ttf',
+    '/webfonts/fa-solid-900.ttf',
+    '/webfonts/Lekton.ttf'
 ];
 
 self.addEventListener('install', event => {
