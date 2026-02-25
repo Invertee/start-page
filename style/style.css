@@ -26,7 +26,7 @@ body {
 
 /* Navbar Transparency & Size */
 .navbar {
-    background: rgba(0, 0, 0, 0.6) !important;
+    background: rgba(0, 0, 0, 0.5) !important;
     backdrop-filter: blur(8px);
     min-height: 2rem !important;
     padding: 0.2rem 0.4rem !important;
