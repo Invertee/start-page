@@ -66,9 +66,9 @@ body {
     margin-right: 0.5rem !important;
 }
 
-/* Lambda to-do integration */
+/* To-do integration */
 .todo-widget {
-    width: min(760px, 100%);
+    width: min(880px, 100%);
     height: 190px;
     margin: 0 auto 18px;
     padding: 10px 12px;
@@ -201,6 +201,72 @@ body {
 
 .todo-error {
     color: #ffb3b3;
+}
+
+/* To-do settings */
+.todo-settings-box {
+    padding: 14px;
+    background: #f7f7f7;
+    border: 1px solid #dedede;
+    border-radius: 6px;
+    color: #363636;
+}
+
+.todo-settings-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.todo-settings-title {
+    margin-bottom: 2px !important;
+}
+
+.todo-settings-description {
+    margin-top: 0 !important;
+    color: #6b6b6b !important;
+}
+
+.todo-settings-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    flex-shrink: 0;
+    color: #363636;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.todo-settings-toggle input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: #48c774;
+}
+
+.todo-settings-field {
+    margin-top: 14px;
+}
+
+.todo-settings-box .label {
+    color: #363636;
+}
+
+.todo-settings-box .help {
+    color: #6b6b6b;
+}
+
+.todo-settings-box .input {
+    background: #fff;
+    color: #363636;
+    border-color: #dbdbdb;
+    box-shadow: none;
+}
+
+.todo-settings-box .input:focus {
+    border-color: #3273dc;
+    box-shadow: 0 0 0 0.125em rgba(50,115,220,0.18);
 }
 
 /* Config Editor Box */
