@@ -5,7 +5,7 @@
     <title>ಠಿ_ಠ </title>
     <link rel="stylesheet" href="./vendor/bulma/css/bulma.min.css">
     <link rel="stylesheet" href="./vendor/fa-all.min.css">
-    <link rel="stylesheet" href="./style/style.css">
+    <link rel="stylesheet" href="./style/style.css?v=2.0.0">
 </head>
 <body id="body-bg">
 
@@ -34,6 +34,23 @@
 
     <div class="v-center-wrapper">
         <div class="container px-4">
+            <section id="todo-widget" class="todo-widget" hidden aria-label="Lambda to-dos">
+                <div class="todo-widget-header">
+                    <div class="todo-widget-title">
+                        <span class="icon"><i class="fas fa-check-square"></i></span>
+                        <span>Lambda to-dos</span>
+                        <span id="todo-status" class="todo-status"></span>
+                    </div>
+                    <form id="todo-add-form" class="todo-add-form">
+                        <input id="todo-add-input" class="input is-small" type="text" maxlength="300" placeholder="Add a to-do" autocomplete="off">
+                        <button class="button is-small is-dark is-inverted is-outlined" type="submit" title="Add to-do">
+                            <span class="icon is-small"><i class="fas fa-plus"></i></span>
+                        </button>
+                    </form>
+                </div>
+                <div id="todo-list" class="todo-list"></div>
+            </section>
+
             <div class="columns is-centered is-multiline is-variable is-1" id="link-grid">
                 </div>
         </div>
@@ -62,6 +79,23 @@
                     </div>
                 </div>
                 <hr>
+                <div class="field">
+                    <label class="checkbox">
+                        <input type="checkbox" id="todo-enabled-input">
+                        Enable Lambda to-dos
+                    </label>
+                </div>
+                <div class="field">
+                    <label class="label">Lambda API URL</label>
+                    <input class="input is-small" type="url" id="todo-api-url-input" placeholder="https://lambda.example.com">
+                    <p class="help">The base URL of your Lambda instance. This integration is disabled by default.</p>
+                </div>
+                <div class="field">
+                    <label class="label">Lambda API Key</label>
+                    <input class="input is-small" type="password" id="todo-api-key-input" autocomplete="off" placeholder="Stored only in this browser">
+                    <p class="help">The key stays in localStorage and is not included in exported page config.</p>
+                </div>
+                <hr>
                 <div id="menu-editor-list"></div>
                 <button class="button is-small is-link is-light is-fullwidth mt-2" id="add-category-btn">+ Add Category</button>
             </section>
@@ -78,6 +112,6 @@
     </div>
 
     <script src="./vendor/moment.min.js"></script>
-    <script src="./js/index.js"></script>
+    <script src="./js/index.js?v=2.0.0"></script>
 </body>
 </html>
