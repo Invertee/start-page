@@ -1,10 +1,10 @@
-const CACHE_NAME = 'start-page-static-v1';
+const CACHE_NAME = 'start-page-static-v2';
 const WEATHER_CACHE = 'start-page-weather-v1';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
-    '/js/index.js',
-    '/style/style.css',
+    '/js/index.js?v=2.0.0',
+    '/style/style.css?v=2.0.0',
     '/vendor/fa-all.min.css',
     '/vendor/moment.min.js',
     '/vendor/bulma/css/bulma.min.css',
@@ -54,21 +54,18 @@ async function networkFirst(request) {
 
 self.addEventListener('fetch', event => {
     const req = event.request;
-    if (req.method !== 'GET') return; // don't handle non-GET
+    if (req.method !== 'GET') return;
     const url = new URL(req.url);
 
-    // Network-first for the weather API so we update when online, but fallback to cache
     if (url.hostname.includes('api.met.no')) {
         event.respondWith(networkFirst(req));
         return;
     }
 
-    // Cache-first for static assets
     event.respondWith(
         caches.match(req).then(cached => {
             if (cached) return cached;
             return fetch(req).then(res => {
-                // only cache successful responses
                 if (!res || res.status !== 200 || res.type === 'opaque') return res;
                 caches.open(CACHE_NAME).then(cache => cache.put(req, res.clone()));
                 return res;
@@ -91,11 +88,9 @@ async function fetchAndCacheWeather(url) {
         if (resp && resp.ok) {
             const cache = await caches.open(WEATHER_CACHE);
             cache.put(url, resp.clone());
-            // Optionally notify clients that weather was cached
             const clients = await self.clients.matchAll();
             clients.forEach(c => c.postMessage({ type: 'WEATHER_CACHED', url }));
         }
     } catch (e) {
-        // ignore failures
     }
 }
