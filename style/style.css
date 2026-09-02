@@ -20,8 +20,8 @@ body {
 .v-center-wrapper {
     flex-grow: 1;
     display: flex;
-    align-items: center; /* Vertical */
-    justify-content: center; /* Horizontal */
+    align-items: center;
+    justify-content: center;
 }
 
 /* Navbar Transparency & Size */
@@ -64,6 +64,143 @@ body {
 .panel-icon {
     font-size: 1.1rem;
     margin-right: 0.5rem !important;
+}
+
+/* Lambda to-do integration */
+.todo-widget {
+    width: min(760px, 100%);
+    height: 190px;
+    margin: 0 auto 18px;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    border-radius: 6px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+.todo-widget[hidden] {
+    display: none !important;
+}
+
+.todo-widget-header {
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding-bottom: 7px;
+}
+
+.todo-widget-title {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.todo-status {
+    color: rgba(255,255,255,0.55);
+    font-size: 0.78rem;
+    font-weight: normal;
+}
+
+.todo-add-form {
+    display: flex;
+    gap: 6px;
+    width: min(320px, 48%);
+}
+
+.todo-add-form .input {
+    background: rgba(20,20,20,0.65);
+    border-color: rgba(255,255,255,0.14);
+    color: #eee;
+}
+
+.todo-add-form .input::placeholder {
+    color: rgba(255,255,255,0.45);
+}
+
+.todo-list {
+    height: 138px;
+    overflow-y: auto;
+    padding-top: 5px;
+}
+
+.todo-list::-webkit-scrollbar {
+    width: 5px;
+}
+
+.todo-list::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.18);
+    border-radius: 4px;
+}
+
+.todo-item {
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 5px 2px;
+}
+
+.todo-row,
+.todo-subtask-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 24px;
+}
+
+.todo-row input[type="checkbox"],
+.todo-subtask-row input[type="checkbox"] {
+    accent-color: #48c774;
+}
+
+.todo-title,
+.todo-subtask-title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.todo-due {
+    color: rgba(255,255,255,0.55);
+    font-size: 0.78rem;
+}
+
+.todo-action {
+    border: none;
+    background: transparent;
+    color: rgba(255,255,255,0.65);
+    cursor: pointer;
+    padding: 2px 5px;
+    font: inherit;
+}
+
+.todo-action:hover {
+    color: white;
+}
+
+.todo-subtasks {
+    margin-left: 24px;
+    padding: 3px 0 1px;
+}
+
+.todo-subtask-row {
+    color: rgba(255,255,255,0.78);
+    font-size: 0.86rem;
+}
+
+.todo-empty,
+.todo-error {
+    padding: 18px 4px;
+    text-align: center;
+    color: rgba(255,255,255,0.58);
+}
+
+.todo-error {
+    color: #ffb3b3;
 }
 
 /* Config Editor Box */
