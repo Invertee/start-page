@@ -1,10 +1,11 @@
-const CACHE_NAME = 'start-page-static-v3';
+const CACHE_NAME = 'start-page-static-v4';
 const WEATHER_CACHE = 'start-page-weather-v1';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
-    '/js/index.js?v=2.1.0',
-    '/style/style.css?v=2.1.0',
+    '/js/index.js?v=2.2.0',
+    '/js/podwaffle.js?v=2.2.0',
+    '/style/style.css?v=2.2.0',
     '/vendor/fa-all.min.css',
     '/vendor/moment.min.js',
     '/vendor/bulma/css/bulma.min.css',
@@ -61,6 +62,8 @@ self.addEventListener('fetch', event => {
         event.respondWith(networkFirst(req));
         return;
     }
+
+    if (url.origin !== self.location.origin) return;
 
     event.respondWith(
         caches.match(req).then(cached => {
