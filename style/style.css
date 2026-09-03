@@ -34,6 +34,59 @@ body {
     color: white !important;
 }
 
+.podwaffle-navbar-item {
+    padding-left: 0.15rem !important;
+    padding-right: 0.15rem !important;
+}
+
+.podwaffle-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.podwaffle-controls[hidden] {
+    display: none !important;
+}
+
+.podwaffle-control.button {
+    width: 1.75rem;
+    min-width: 1.75rem;
+    height: 1.75rem;
+    padding: 0 !important;
+    background: rgba(255,255,255,0.04) !important;
+    border-color: rgba(255,255,255,0.38) !important;
+    color: rgba(255,255,255,0.86) !important;
+}
+
+.podwaffle-control.button:hover,
+.podwaffle-control.button:focus {
+    background: rgba(255,255,255,0.12) !important;
+    border-color: rgba(255,255,255,0.72) !important;
+    color: white !important;
+}
+
+.podwaffle-control.button.is-active {
+    background: rgba(72,199,116,0.28) !important;
+    border-color: rgba(72,199,116,0.85) !important;
+    color: white !important;
+}
+
+.podwaffle-control.button[disabled] {
+    opacity: 0.48;
+    cursor: wait;
+}
+
+.podwaffle-controls.has-error .podwaffle-control.button {
+    border-color: rgba(255,120,120,0.5) !important;
+}
+
+.podwaffle-control .icon {
+    width: 1rem;
+    height: 1rem;
+    font-size: 0.7rem;
+}
+
 /* Bulma Panel "Shrink" Overrides */
 .panel {
     background: rgba(0, 0, 0, 0.5);
@@ -203,8 +256,8 @@ body {
     color: #ffb3b3;
 }
 
-/* To-do settings */
-.todo-settings-box {
+/* Integration settings */
+.integration-settings-box {
     padding: 14px;
     background: #f7f7f7;
     border: 1px solid #dedede;
@@ -212,23 +265,27 @@ body {
     color: #363636;
 }
 
-.todo-settings-heading {
+.integration-settings-box + .integration-settings-box {
+    margin-top: 12px;
+}
+
+.integration-settings-heading {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
 }
 
-.todo-settings-title {
+.integration-settings-title {
     margin-bottom: 2px !important;
 }
 
-.todo-settings-description {
+.integration-settings-description {
     margin-top: 0 !important;
     color: #6b6b6b !important;
 }
 
-.todo-settings-toggle {
+.integration-settings-toggle {
     display: inline-flex;
     align-items: center;
     gap: 7px;
@@ -238,33 +295,38 @@ body {
     cursor: pointer;
 }
 
-.todo-settings-toggle input[type="checkbox"] {
+.integration-settings-toggle input[type="checkbox"] {
     width: 16px;
     height: 16px;
     margin: 0;
     accent-color: #48c774;
 }
 
-.todo-settings-field {
+.integration-settings-field {
     margin-top: 14px;
 }
 
-.todo-settings-box .label {
+.integration-settings-status {
+    min-height: 1.25em;
+    margin-top: 10px !important;
+}
+
+.integration-settings-box .label {
     color: #363636;
 }
 
-.todo-settings-box .help {
+.integration-settings-box .help {
     color: #6b6b6b;
 }
 
-.todo-settings-box .input {
+.integration-settings-box .input {
     background: #fff;
     color: #363636;
     border-color: #dbdbdb;
     box-shadow: none;
 }
 
-.todo-settings-box .input:focus {
+.integration-settings-box .input:focus {
     border-color: #3273dc;
     box-shadow: 0 0 0 0.125em rgba(50,115,220,0.18);
 }
