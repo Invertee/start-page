@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ಠಿ_ಠ </title>
+    <title>&#3232;&#3263;_&#3232;</title>
     <link rel="stylesheet" href="./vendor/bulma/css/bulma.min.css">
     <link rel="stylesheet" href="./vendor/fa-all.min.css">
-    <link rel="stylesheet" href="./style/style.css?v=2.1.0">
+    <link rel="stylesheet" href="./style/style.css?v=2.2.0">
 </head>
 <body id="body-bg">
 
@@ -22,6 +22,19 @@
                 </div>
                 <div class="navbar-item">
                     <span class="tag is-light" id="open-count-tag" style="background: rgba(255,255,255,0.08); color: #eee; border: none;">0</span>
+                </div>
+                <div id="podwaffle-navbar-item" class="navbar-item podwaffle-navbar-item" hidden>
+                    <div id="podwaffle-controls" class="podwaffle-controls" aria-label="Podwaffle media controls">
+                        <button type="button" class="button is-dark is-inverted is-outlined is-small podwaffle-control" data-podwaffle-action="play" title="Play" aria-label="Play">
+                            <span class="icon is-small"><i class="fas fa-play"></i></span>
+                        </button>
+                        <button type="button" class="button is-dark is-inverted is-outlined is-small podwaffle-control" data-podwaffle-action="pause" title="Pause" aria-label="Pause">
+                            <span class="icon is-small"><i class="fas fa-pause"></i></span>
+                        </button>
+                        <button type="button" class="button is-dark is-inverted is-outlined is-small podwaffle-control" data-podwaffle-action="skip-forward" title="Skip forward" aria-label="Skip forward">
+                            <span class="icon is-small"><i class="fas fa-forward"></i></span>
+                        </button>
+                    </div>
                 </div>
                 <div class="navbar-item">
                     <button id="config-btn" class="button is-dark is-inverted is-outlined is-small">
@@ -79,27 +92,50 @@
                     </div>
                 </div>
                 <hr>
-                <div class="todo-settings-box">
-                    <div class="todo-settings-heading">
+                <div class="integration-settings-box">
+                    <div class="integration-settings-heading">
                         <div>
-                            <p class="label todo-settings-title">To-dos</p>
-                            <p class="help todo-settings-description">Show open Lambda to-dos on the start page.</p>
+                            <p class="label integration-settings-title">To-dos</p>
+                            <p class="help integration-settings-description">Show open Lambda to-dos on the start page.</p>
                         </div>
-                        <label class="todo-settings-toggle">
+                        <label class="integration-settings-toggle">
                             <input type="checkbox" id="todo-enabled-input">
                             <span>Enabled</span>
                         </label>
                     </div>
-                    <div class="field todo-settings-field">
+                    <div class="field integration-settings-field">
                         <label class="label">Lambda API URL</label>
                         <input class="input is-small" type="url" id="todo-api-url-input" placeholder="https://lambda.example.com">
                         <p class="help">The base URL of your Lambda instance.</p>
                     </div>
-                    <div class="field todo-settings-field">
+                    <div class="field integration-settings-field">
                         <label class="label">Lambda API Key</label>
                         <input class="input is-small" type="password" id="todo-api-key-input" autocomplete="off" placeholder="Stored only in this browser">
                         <p class="help">Stored locally in this browser and excluded from exported page config.</p>
                     </div>
+                </div>
+                <div class="integration-settings-box">
+                    <div class="integration-settings-heading">
+                        <div>
+                            <p class="label integration-settings-title">Podwaffle</p>
+                            <p class="help integration-settings-description">Show playback controls beside the settings button.</p>
+                        </div>
+                        <label class="integration-settings-toggle">
+                            <input type="checkbox" id="podwaffle-enabled-input">
+                            <span>Enabled</span>
+                        </label>
+                    </div>
+                    <div class="field integration-settings-field">
+                        <label class="label">Podwaffle Server URL</label>
+                        <input class="input is-small" type="url" id="podwaffle-api-url-input" placeholder="https://podwaffle.example.com">
+                        <p class="help">Use the direct server URL rather than a Home Assistant ingress URL.</p>
+                    </div>
+                    <div class="field integration-settings-field">
+                        <label class="label">Podwaffle API Key</label>
+                        <input class="input is-small" type="password" id="podwaffle-api-key-input" autocomplete="off" placeholder="Stored only in this browser">
+                        <p class="help">Use a profile-scoped controller token. This is the same restricted API used by the Home Assistant integration.</p>
+                    </div>
+                    <p id="podwaffle-settings-status" class="help integration-settings-status"></p>
                 </div>
                 <hr>
                 <div id="menu-editor-list"></div>
@@ -118,6 +154,7 @@
     </div>
 
     <script src="./vendor/moment.min.js"></script>
-    <script src="./js/index.js?v=2.1.0"></script>
+    <script src="./js/index.js?v=2.2.0"></script>
+    <script src="./js/podwaffle.js?v=2.2.0"></script>
 </body>
 </html>
