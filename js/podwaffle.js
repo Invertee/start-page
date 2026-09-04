@@ -11,6 +11,7 @@ function createPodwaffleState() {
         loading: false,
         sending: false,
         playbackState: 'stopped',
+        skipBackwardSeconds: 15,
         skipForwardSeconds: 30,
         error: ''
     };
@@ -111,30 +112,51 @@ function renderPodwaffleControls() {
         ? `Podwaffle unavailable - ${podwaffleState.error}`
         : `Podwaffle is ${podwaffleState.playbackState}`;
 
-    const playButton = controls.querySelector('[data-podwaffle-action="play"]');
-    const pauseButton = controls.querySelector('[data-podwaffle-action="pause"]');
-    const skipButton = controls.querySelector('[data-podwaffle-action="skip-forward"]');
+    const toggleButton = controls.querySelector('[data-podwaffle-action="toggle"]');
+    const toggleIcon = toggleButton?.querySelector('i');
+    const skipBackButton = controls.querySelector('[data-podwaffle-action="skip-backward"]');
+    const skipForwardButton = controls.querySelector('[data-podwaffle-action="skip-forward"]');
     controls.querySelectorAll('[data-podwaffle-action]').forEach(button => {
         button.disabled = busy || Boolean(podwaffleState.error);
     });
 
-    playButton.classList.toggle('is-active', podwaffleState.playbackState === 'playing');
-    playButton.setAttribute('aria-pressed', String(podwaffleState.playbackState === 'playing'));
-    pauseButton.classList.toggle('is-active', podwaffleState.playbackState === 'paused');
-    pauseButton.setAttribute('aria-pressed', String(podwaffleState.playbackState === 'paused'));
-    skipButton.title = `Skip forward ${podwaffleState.skipForwardSeconds} seconds`;
+    const playing = podwaffleState.playbackState === 'playing';
+    const toggleLabel = playing ? 'Pause' : 'Play';
+    if (toggleButton) {
+        toggleButton.classList.toggle('is-active', playing);
+        toggleButton.setAttribute('aria-pressed', String(playing));
+        toggleButton.setAttribute('aria-label', toggleLabel);
+        toggleButton.title = toggleLabel;
+    }
+    if (toggleIcon) {
+        toggleIcon.className = playing ? 'fas fa-pause' : 'fas fa-play';
+    }
+    if (skipBackButton) {
+        const label = `Skip back ${podwaffleState.skipBackwardSeconds} seconds`;
+        skipBackButton.title = label;
+        skipBackButton.setAttribute('aria-label', label);
+    }
+    if (skipForwardButton) {
+        const label = `Skip forward ${podwaffleState.skipForwardSeconds} seconds`;
+        skipForwardButton.title = label;
+        skipForwardButton.setAttribute('aria-label', label);
+    }
 }
 
 function applyPodwaffleSnapshot(snapshot) {
     const playback = snapshot && typeof snapshot.playback === 'object' ? snapshot.playback : {};
     const playbackState = ['playing', 'paused', 'stopped'].includes(playback.state) ? playback.state : 'stopped';
     const playbackSettings = snapshot?.profile?.settings?.playback;
-    const configuredSkip = Number(playbackSettings?.skipForwardSeconds);
+    const configuredSkipBackward = Number(playbackSettings?.skipBackwardSeconds);
+    const configuredSkipForward = Number(playbackSettings?.skipForwardSeconds);
 
     podwaffleState.loaded = true;
     podwaffleState.playbackState = playbackState;
-    podwaffleState.skipForwardSeconds = Number.isFinite(configuredSkip)
-        ? Math.max(1, Math.min(120, Math.round(configuredSkip)))
+    podwaffleState.skipBackwardSeconds = Number.isFinite(configuredSkipBackward)
+        ? Math.max(1, Math.min(120, Math.round(configuredSkipBackward)))
+        : 15;
+    podwaffleState.skipForwardSeconds = Number.isFinite(configuredSkipForward)
+        ? Math.max(1, Math.min(120, Math.round(configuredSkipForward)))
         : 30;
     podwaffleState.error = '';
 }
@@ -204,14 +226,19 @@ function podwaffleCommandId() {
 async function sendPodwaffleCommand(action) {
     if (!podwaffleReady() || !podwaffleState.loaded || podwaffleState.sending) return;
     const previousState = podwaffleState.playbackState;
+    const commandAction = action === 'toggle'
+        ? (previousState === 'playing' ? 'pause' : 'play')
+        : action;
+
     podwaffleState.sending = true;
     podwaffleState.error = '';
-    if (action === 'play') podwaffleState.playbackState = 'playing';
-    if (action === 'pause') podwaffleState.playbackState = 'paused';
+    if (commandAction === 'play') podwaffleState.playbackState = 'playing';
+    if (commandAction === 'pause') podwaffleState.playbackState = 'paused';
     renderPodwaffleControls();
 
-    const payload = { commandId: podwaffleCommandId(), action };
-    if (action === 'skip-forward') payload.offsetMs = podwaffleState.skipForwardSeconds * 1000;
+    const payload = { commandId: podwaffleCommandId(), action: commandAction };
+    if (commandAction === 'skip-backward') payload.offsetMs = podwaffleState.skipBackwardSeconds * 1000;
+    if (commandAction === 'skip-forward') payload.offsetMs = podwaffleState.skipForwardSeconds * 1000;
 
     try {
         const result = await podwaffleRequest('/playback/commands', {
@@ -273,7 +300,7 @@ function initPodwaffleIntegration() {
     schedulePodwaffleRefresh();
     if ('serviceWorker' in navigator) {
         window.setTimeout(() => {
-            navigator.serviceWorker.register('/sw.js?v=2.2.0').catch(() => {});
+            navigator.serviceWorker.register('/sw.js?v=2.2.1').catch(() => {});
         }, 1000);
     }
 }
