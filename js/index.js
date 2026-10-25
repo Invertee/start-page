@@ -200,6 +200,17 @@ function renderTodoWidget(message = '') {
     widget.hidden = !config.lambdaTodosEnabled;
     if (widget.hidden) return;
 
+    const openLambda = document.getElementById('todo-open-lambda');
+    openLambda.hidden = true;
+    openLambda.removeAttribute('href');
+    try {
+        const url = new URL(lambdaBaseUrl());
+        if (url.protocol === 'https:' || url.protocol === 'http:') {
+            openLambda.href = url.href;
+            openLambda.hidden = false;
+        }
+    } catch {}
+
     status.textContent = message || (todoState.refreshing ? 'updating…' : `${todoState.items.length} open`);
 
     if (!lambdaBaseUrl() || !lambdaApiKey()) {
@@ -276,10 +287,10 @@ function updateCachedTodo(updated) {
     renderTodoWidget();
 }
 
-async function createTodo(title) {
+async function createTodo(title, dueDate = null) {
     const created = await lambdaRequest('/api/todos', {
         method: 'POST',
-        body: JSON.stringify({ title, subtasks: [], completed: false })
+        body: JSON.stringify({ title, dueDate, subtasks: [], completed: false })
     });
     updateCachedTodo(created);
 }
@@ -347,14 +358,21 @@ function wireTodoWidget() {
         event.preventDefault();
         if (!lambdaReady()) return;
         const input = document.getElementById('todo-add-input');
+        const dueInput = document.getElementById('todo-add-due');
+        const submitButton = event.currentTarget.querySelector('button[type="submit"]');
+        if (submitButton.disabled) return;
         const title = input.value.trim();
         if (!title) return;
-        input.value = '';
+        const dueDate = dueInput.value || null;
+        input.disabled = dueInput.disabled = submitButton.disabled = true;
         try {
-            await createTodo(title);
+            await createTodo(title, dueDate);
+            input.value = '';
+            dueInput.value = '';
         } catch (error) {
-            input.value = title;
             renderTodoWidget('save failed');
+        } finally {
+            input.disabled = dueInput.disabled = submitButton.disabled = false;
         }
     });
 
@@ -521,3 +539,4 @@ function init() {
 }
 
 init();
+

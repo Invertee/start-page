@@ -136,8 +136,14 @@ body {
     display: none !important;
 }
 
+.todo-widget {
+    display: flex;
+    flex-direction: column;
+}
+
 .todo-widget-header {
-    height: 34px;
+    min-height: 34px;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -163,7 +169,38 @@ body {
 .todo-add-form {
     display: flex;
     gap: 6px;
-    width: min(320px, 48%);
+    width: min(480px, 65%);
+    min-width: 0;
+}
+
+.todo-add-form .button {
+    flex-shrink: 0;
+}
+
+#todo-add-input {
+    flex: 1;
+    min-width: 0;
+}
+
+.todo-add-due.input {
+    flex: 0 0 132px;
+    min-width: 0;
+    color-scheme: dark;
+}
+
+#todo-open-lambda[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 640px) {
+    .todo-widget-header {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .todo-add-form {
+        width: 100%;
+    }
 }
 
 .todo-add-form .input {
@@ -177,7 +214,8 @@ body {
 }
 
 .todo-list {
-    height: 138px;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
     padding-top: 5px;
 }
@@ -348,3 +386,4 @@ body::-webkit-scrollbar {
 .navbar-items {
     color:white;
 }
+

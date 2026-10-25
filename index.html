@@ -5,7 +5,7 @@
     <title>&#3232;&#3263;_&#3232;</title>
     <link rel="stylesheet" href="./vendor/bulma/css/bulma.min.css">
     <link rel="stylesheet" href="./vendor/fa-all.min.css">
-    <link rel="stylesheet" href="./style/style.css?v=2.2.0">
+    <link rel="stylesheet" href="./style/style.css?v=2.3.0">
 </head>
 <body id="body-bg">
 
@@ -55,10 +55,14 @@
                         <span id="todo-status" class="todo-status"></span>
                     </div>
                     <form id="todo-add-form" class="todo-add-form">
-                        <input id="todo-add-input" class="input is-small" type="text" maxlength="300" placeholder="Add a to-do" autocomplete="off">
-                        <button class="button is-small is-dark is-inverted is-outlined" type="submit" title="Add to-do">
+                        <input id="todo-add-input" class="input is-small" type="text" maxlength="300" placeholder="Add a to-do" autocomplete="off" aria-label="Task description">
+                        <input id="todo-add-due" class="input is-small todo-add-due" type="date" aria-label="Due date" title="Due date (optional)">
+                        <button class="button is-small is-dark is-inverted is-outlined" type="submit" title="Add to-do" aria-label="Add to-do">
                             <span class="icon is-small"><i class="fas fa-plus"></i></span>
                         </button>
+                        <a id="todo-open-lambda" class="button is-small is-dark is-inverted is-outlined" target="_blank" rel="noopener noreferrer" title="Open Lambda" aria-label="Open Lambda (opens in a new tab)" hidden>
+                            <span class="icon is-small"><i class="fas fa-external-link-alt" aria-hidden="true"></i></span>
+                        </a>
                     </form>
                 </div>
                 <div id="todo-list" class="todo-list"></div>
@@ -154,7 +158,8 @@
     </div>
 
     <script src="./vendor/moment.min.js"></script>
-    <script src="./js/index.js?v=2.2.0"></script>
+    <script src="./js/index.js?v=2.3.0"></script>
     <script src="./js/podwaffle.js?v=2.2.1"></script>
 </body>
 </html>
+
