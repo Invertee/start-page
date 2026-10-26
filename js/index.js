@@ -287,6 +287,18 @@ function updateCachedTodo(updated) {
     renderTodoWidget();
 }
 
+function todoDueDateForChoice(choice, now = new Date()) {
+    const date = new Date(now);
+    const day = date.getDay();
+    let offset = 0;
+    if (choice === 'tomorrow') offset = 1;
+    if (choice === 'end-week') offset = (5 - day + 7) % 7;
+    if (choice === 'next-week') offset = (8 - day) % 7 || 7;
+    date.setDate(date.getDate() + offset);
+    // Lambda expects a local calendar date, without a UTC conversion.
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
 async function createTodo(title, dueDate = null) {
     const created = await lambdaRequest('/api/todos', {
         method: 'POST',
@@ -363,12 +375,12 @@ function wireTodoWidget() {
         if (submitButton.disabled) return;
         const title = input.value.trim();
         if (!title) return;
-        const dueDate = dueInput.value || null;
+        const dueDate = todoDueDateForChoice(dueInput.value);
         input.disabled = dueInput.disabled = submitButton.disabled = true;
         try {
             await createTodo(title, dueDate);
             input.value = '';
-            dueInput.value = '';
+            dueInput.value = 'today';
         } catch (error) {
             renderTodoWidget('save failed');
         } finally {

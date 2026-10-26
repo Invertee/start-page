@@ -1,11 +1,11 @@
-const CACHE_NAME = 'start-page-static-v6';
+const CACHE_NAME = 'start-page-static-v7';
 const WEATHER_CACHE = 'start-page-weather-v1';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
-    '/js/index.js?v=2.3.0',
+    '/js/index.js?v=2.4.0',
     '/js/podwaffle.js?v=2.2.1',
-    '/style/style.css?v=2.3.0',
+    '/style/style.css?v=2.4.0',
     '/vendor/fa-all.min.css',
     '/vendor/moment.min.js',
     '/vendor/bulma/css/bulma.min.css',

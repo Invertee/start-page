@@ -6,7 +6,7 @@ const vm = require('node:vm');
 
 const source = fs.readFileSync(path.join(__dirname, '../js/index.js'), 'utf8');
 
-function setup() {
+function setup(now = '2026-10-26T23:30:00') {
     const storage = new Map([
         ['PageConfig', JSON.stringify({ lambdaTodosEnabled: true, lambdaApiUrl: 'https://lambda.example.test/app/', categories: [] })],
         ['LambdaTodoApiKey', 'test-key']
@@ -14,7 +14,7 @@ function setup() {
     const elements = new Map();
     const element = id => {
         if (!elements.has(id)) elements.set(id, {
-            value: '', disabled: false, hidden: false, innerHTML: '', textContent: '',
+            value: id === 'todo-add-due' ? 'today' : '', disabled: false, hidden: false, innerHTML: '', textContent: '',
             listeners: {},
             addEventListener(type, handler) { this.listeners[type] = handler; },
             removeAttribute(name) { delete this[name]; }
@@ -26,6 +26,9 @@ function setup() {
         localStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) },
         document: { getElementById: element },
         Headers, URL,
+        Date: class extends Date {
+            constructor(...args) { super(...(args.length ? args : [now])); }
+        },
         fetch: async (url, options) => {
             requests.push({ url, options });
             return { ok: true, status: 200, json: async () => ({ id: 'new-task', ...JSON.parse(options.body) }) };
@@ -61,30 +64,60 @@ test('hides the app link for missing, invalid, or unsafe URLs', () => {
     }
 });
 
-test('submits the selected date unchanged, caches the result, and clears both fields', async () => {
+test('submits the selected shortcut, caches the date, and resets to Today', async () => {
     const { context, element, requests, submit, storage } = setup();
     context.renderTodoWidget = () => {};
     element('todo-add-input').value = '  Plan next week  ';
-    element('todo-add-due').value = '2026-10-26';
+    element('todo-add-due').value = 'tomorrow';
     await submit();
     assert.equal(requests.length, 1);
     assert.equal(requests[0].url, 'https://lambda.example.test/app/api/todos');
     assert.equal(requests[0].options.headers.get('Authorization'), 'Bearer test-key');
     assert.deepEqual(JSON.parse(requests[0].options.body), {
-        title: 'Plan next week', dueDate: '2026-10-26', subtasks: [], completed: false
+        title: 'Plan next week', dueDate: '2026-10-27', subtasks: [], completed: false
     });
-    assert.equal(JSON.parse(storage.get('LambdaTodoCache')).items[0].dueDate, '2026-10-26');
+    assert.equal(JSON.parse(storage.get('LambdaTodoCache')).items[0].dueDate, '2026-10-27');
     assert.equal(element('todo-add-input').value, '');
-    assert.equal(element('todo-add-due').value, '');
+    assert.equal(element('todo-add-due').value, 'today');
     assert.equal(element('todo-add-input').disabled, false);
 });
 
-test('allows tasks without a due date', async () => {
+test('defaults new tasks to Today', async () => {
     const { context, element, requests, submit } = setup();
     context.renderTodoWidget = () => {};
-    element('todo-add-input').value = 'Undated task';
+    element('todo-add-input').value = 'Task due today';
     await submit();
-    assert.equal(JSON.parse(requests[0].options.body).dueDate, null);
+    assert.equal(JSON.parse(requests[0].options.body).dueDate, '2026-10-26');
+});
+
+test('matches Lambda shortcuts across weekends, year boundaries, leap days, and clock changes', () => {
+    const { context } = setup();
+    const cases = [
+        ['2026-10-26T23:30:00', ['2026-10-26', '2026-10-27', '2026-10-30', '2026-11-02']],
+        ['2026-10-30T23:30:00', ['2026-10-30', '2026-10-31', '2026-10-30', '2026-11-02']],
+        ['2026-10-31T23:30:00', ['2026-10-31', '2026-11-01', '2026-11-06', '2026-11-02']],
+        ['2026-11-01T23:30:00', ['2026-11-01', '2026-11-02', '2026-11-06', '2026-11-02']],
+        ['2026-12-31T23:30:00', ['2026-12-31', '2027-01-01', '2027-01-01', '2027-01-04']],
+        ['2028-02-28T23:30:00', ['2028-02-28', '2028-02-29', '2028-03-03', '2028-03-06']],
+        ['2026-03-28T23:30:00', ['2026-03-28', '2026-03-29', '2026-04-03', '2026-03-30']]
+    ];
+    const choices = ['today', 'tomorrow', 'end-week', 'next-week'];
+    for (const [now, expected] of cases) {
+        choices.forEach((choice, index) => {
+            assert.equal(context.todoDueDateForChoice(choice, new Date(now)), expected[index], `${now}: ${choice}`);
+        });
+    }
+});
+
+test('sends every dropdown choice as a Lambda due date', async () => {
+    for (const [choice, expected] of [['today', '2026-10-26'], ['tomorrow', '2026-10-27'], ['end-week', '2026-10-30'], ['next-week', '2026-11-02']]) {
+        const { context, element, requests, submit } = setup();
+        context.renderTodoWidget = () => {};
+        element('todo-add-input').value = 'A task';
+        element('todo-add-due').value = choice;
+        await submit();
+        assert.equal(JSON.parse(requests[0].options.body).dueDate, expected);
+    }
 });
 
 test('retains the description and date on failure, then permits retry', async () => {
@@ -94,10 +127,10 @@ test('retains the description and date on failure, then permits retry', async ()
     const successfulFetch = context.fetch;
     context.fetch = async () => { throw new Error('offline'); };
     element('todo-add-input').value = 'Retry this task';
-    element('todo-add-due').value = '2026-11-03';
+    element('todo-add-due').value = 'next-week';
     await submit();
     assert.equal(element('todo-add-input').value, 'Retry this task');
-    assert.equal(element('todo-add-due').value, '2026-11-03');
+    assert.equal(element('todo-add-due').value, 'next-week');
     assert.equal(element('todo-add-input').disabled, false);
     assert.equal(element('todo-add-due').disabled, false);
     assert.equal(submitButton.disabled, false);
@@ -105,7 +138,7 @@ test('retains the description and date on failure, then permits retry', async ()
     context.fetch = successfulFetch;
     await submit();
     assert.equal(requests.length, 1);
-    assert.equal(JSON.parse(requests[0].options.body).dueDate, '2026-11-03');
+    assert.equal(JSON.parse(requests[0].options.body).dueDate, '2026-11-02');
 });
 
 test('prevents duplicate submissions while saving', async () => {
