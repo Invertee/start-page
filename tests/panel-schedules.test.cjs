@@ -27,12 +27,13 @@ function setup() {
         const handlers = {};
         const link = {};
         const shortcuts = { contains: target => target === link };
-        const message = {};
+        const unlockButton = {};
+        const elements = { '.panel-shortcuts': shortcuts, '.panel-freeze-button': unlockButton };
         const heading = {};
         const classes = new Set();
         const panel = {
             classList: { toggle: (name, enabled) => enabled ? classes.add(name) : classes.delete(name) },
-            querySelector: selector => selector === '.panel-shortcuts' ? shortcuts : message,
+            querySelector: selector => elements[selector],
             addEventListener: (type, handler) => { handlers[type] = handler; }
         };
         context.wirePanelSchedule(panel, { enabled: true, windows });
@@ -44,7 +45,7 @@ function setup() {
         function isFrozen() {
             const frozen = classes.has('is-frozen');
             assert.equal(shortcuts.inert, frozen);
-            assert.equal(message.hidden, !frozen);
+            assert.equal(unlockButton.hidden, !frozen);
             return frozen;
         }
         return { isFrozen, interact, link };
@@ -81,7 +82,7 @@ test('supports an overnight window and a window ending at midnight', () => {
     }
 });
 
-test('blocks shortcut actions and only overrides the clicked panel after three quick clicks', () => {
+test('blocks shortcut actions and only overrides the clicked panel after four quick clicks', () => {
     const { makePanel, setTime } = setup();
     const panel = makePanel([]);
     const other = makePanel([]);
@@ -94,6 +95,7 @@ test('blocks shortcut actions and only overrides the clicked panel after three q
     assert.equal(panel.isFrozen(), true);
 
     setTime('2026-11-25T10:00:01');
+    panel.interact();
     panel.interact();
     panel.interact();
     assert.equal(panel.isFrozen(), true);

@@ -2,6 +2,7 @@ const TODO_CACHE_KEY = 'LambdaTodoCache';
 const TODO_API_KEY_STORAGE = 'LambdaTodoApiKey';
 const SCHEDULE_BLOCKS_PER_DAY = 48;
 const PANEL_OVERRIDE_MS = 5 * 60 * 1000;
+const PANEL_OVERRIDE_CLICKS = 4;
 const PANEL_CLICK_GAP_MS = 750;
 
 let config = JSON.parse(localStorage.getItem('PageConfig')) || {
@@ -84,14 +85,14 @@ function updatePanelSchedule(panel, now) {
     if (frozen === panel.frozen) return;
 
     const focusWasInside = panel.shortcuts.contains(document.activeElement);
-    const focusWasOnMessage = document.activeElement === panel.message;
+    const focusWasOnButton = document.activeElement === panel.unlockButton;
     panel.frozen = frozen;
     panel.clicks = 0;
     panel.element.classList.toggle('is-frozen', frozen);
     panel.shortcuts.inert = frozen;
-    panel.message.hidden = !frozen;
-    if (frozen && focusWasInside) panel.message.focus({ preventScroll: true });
-    if (!frozen && focusWasOnMessage) panel.shortcuts.querySelector('a')?.focus({ preventScroll: true });
+    panel.unlockButton.hidden = !frozen;
+    if (frozen && focusWasInside) panel.unlockButton.focus({ preventScroll: true });
+    if (!frozen && focusWasOnButton) panel.shortcuts.querySelector('a')?.focus({ preventScroll: true });
 }
 
 function refreshPanelSchedules() {
@@ -104,7 +105,7 @@ function wirePanelSchedule(element, schedule) {
         element,
         schedule,
         shortcuts: element.querySelector('.panel-shortcuts'),
-        message: element.querySelector('.panel-freeze-message'),
+        unlockButton: element.querySelector('.panel-freeze-button'),
         overrideUntil: 0,
         lastClick: 0,
         clicks: 0
@@ -126,7 +127,7 @@ function wirePanelSchedule(element, schedule) {
         if (time - panel.lastClick > PANEL_CLICK_GAP_MS) panel.clicks = 0;
         panel.lastClick = time;
         panel.clicks++;
-        if (panel.clicks === 3) {
+        if (panel.clicks === PANEL_OVERRIDE_CLICKS) {
             panel.overrideUntil = time + PANEL_OVERRIDE_MS;
             updatePanelSchedule(panel, now);
         }
@@ -164,11 +165,9 @@ function renderPage() {
                         `).join('')}
                     </div>
                     ${canFreeze ? `
-                        <button type="button" class="panel-freeze-message" hidden
-                            aria-label="Frozen. Activate three times to unlock for five minutes."
-                            title="Triple-click anywhere on this panel to unlock for five minutes.">
-                            <span><i class="fas fa-snowflake" aria-hidden="true"></i> Frozen</span>
-                            <small>Triple-click to unlock</small>
+                        <button type="button" class="panel-freeze-button" hidden
+                            aria-label="Frozen. Activate four times to unlock for five minutes.">
+                            <i class="fas fa-snowflake" aria-hidden="true"></i>
                         </button>
                     ` : ''}
                 </div>
@@ -743,7 +742,7 @@ function handleImportFile(evt) {
 
 function init() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js?v=2.1.0').catch(() => {});
+        navigator.serviceWorker.register('/sw.js?v=2.1.1').catch(() => {});
     }
     ensureAndIncrementOpenCount();
     wireTodoWidget();

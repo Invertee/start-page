@@ -138,29 +138,22 @@ body {
     visibility: hidden;
 }
 
-.panel-freeze-message:not([hidden]) {
+.panel-freeze-button:not([hidden]) {
     position: absolute;
     inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    place-items: center;
     width: 100%;
+    padding: 0;
     border: 0;
     background: transparent;
     color: #f0f8ff;
-    font: inherit;
-    font-weight: bold;
+    font-size: 1.2rem;
     line-height: 1;
     cursor: pointer;
 }
 
-.panel-freeze-message small {
-    font-size: 0.75rem;
-    font-weight: normal;
-}
-
-.panel-freeze-message:focus-visible {
+.panel-freeze-button:focus-visible {
     outline: 2px solid #c5e8ff;
     outline-offset: -4px;
 }
