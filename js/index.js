@@ -1,5 +1,8 @@
 const TODO_CACHE_KEY = 'LambdaTodoCache';
 const TODO_API_KEY_STORAGE = 'LambdaTodoApiKey';
+const SCHEDULE_BLOCKS_PER_DAY = 48;
+const PANEL_OVERRIDE_MS = 5 * 60 * 1000;
+const PANEL_CLICK_GAP_MS = 750;
 
 let config = JSON.parse(localStorage.getItem('PageConfig')) || {
     wallpaper: './img/wp.jpg',
@@ -17,6 +20,10 @@ let config = JSON.parse(localStorage.getItem('PageConfig')) || {
 
 config.lambdaTodosEnabled = Boolean(config.lambdaTodosEnabled);
 config.lambdaApiUrl = config.lambdaApiUrl || '';
+
+const scheduledPanels = [];
+const scheduleDrafts = new Map();
+let scheduleCategory;
 
 let todoState = {
     items: loadTodoCache(),
@@ -55,30 +62,122 @@ function hexToRgba(hex, alpha = 0.7) {
     return `rgba(${r},${g},${b},${alpha})`;
 }
 
+function readPanelSchedule(category) {
+    const schedule = category.schedule;
+    const windows = Array.isArray(schedule?.windows) ? schedule.windows : [];
+    return {
+        enabled: schedule?.enabled === true,
+        windows: windows.filter(block =>
+            Number.isInteger(block?.start) && block.start >= 0 && block.start < SCHEDULE_BLOCKS_PER_DAY &&
+            Number.isInteger(block.end) && block.end > 0 && block.end <= SCHEDULE_BLOCKS_PER_DAY &&
+            block.start !== block.end
+        )
+    };
+}
+
+function updatePanelSchedule(panel, now) {
+    const block = now.getHours() * 2 + Math.floor(now.getMinutes() / 30);
+    const inWindow = panel.schedule.windows.some(({ start, end }) =>
+        start < end ? block >= start && block < end : block >= start || block < end
+    );
+    const frozen = !inWindow && now.getTime() >= panel.overrideUntil;
+    if (frozen === panel.frozen) return;
+
+    const focusWasInside = panel.shortcuts.contains(document.activeElement);
+    const focusWasOnMessage = document.activeElement === panel.message;
+    panel.frozen = frozen;
+    panel.clicks = 0;
+    panel.element.classList.toggle('is-frozen', frozen);
+    panel.shortcuts.inert = frozen;
+    panel.message.hidden = !frozen;
+    if (frozen && focusWasInside) panel.message.focus({ preventScroll: true });
+    if (!frozen && focusWasOnMessage) panel.shortcuts.querySelector('a')?.focus({ preventScroll: true });
+}
+
+function refreshPanelSchedules() {
+    const now = new Date();
+    scheduledPanels.forEach(panel => updatePanelSchedule(panel, now));
+}
+
+function wirePanelSchedule(element, schedule) {
+    const panel = {
+        element,
+        schedule,
+        shortcuts: element.querySelector('.panel-shortcuts'),
+        message: element.querySelector('.panel-freeze-message'),
+        overrideUntil: 0,
+        lastClick: 0,
+        clicks: 0
+    };
+    scheduledPanels.push(panel);
+
+    function handleInteraction(event) {
+        const now = new Date();
+        updatePanelSchedule(panel, now);
+        if (!panel.frozen) return;
+
+        if (panel.shortcuts.contains(event.target)) {
+            event.preventDefault();
+            return;
+        }
+        if (event.type !== 'click') return;
+
+        const time = now.getTime();
+        if (time - panel.lastClick > PANEL_CLICK_GAP_MS) panel.clicks = 0;
+        panel.lastClick = time;
+        panel.clicks++;
+        if (panel.clicks === 3) {
+            panel.overrideUntil = time + PANEL_OVERRIDE_MS;
+            updatePanelSchedule(panel, now);
+        }
+    }
+
+    for (const type of ['click', 'auxclick', 'contextmenu']) {
+        element.addEventListener(type, handleInteraction, true);
+    }
+}
+
 function renderPage() {
     document.getElementById('body-bg').style.backgroundImage = `url('${config.wallpaper}')`;
     const grid = document.getElementById('link-grid');
     grid.innerHTML = '';
+    scheduledPanels.length = 0;
 
     config.categories.forEach(cat => {
         const col = document.createElement('div');
         col.className = 'column is-narrow';
         const headingBg = hexToRgba(cat.color, 0.4);
+        const schedule = readPanelSchedule(cat);
+        const canFreeze = schedule.enabled && cat.links.length > 0;
         col.innerHTML = `
-            <nav class="panel">
+            <nav class="panel shortcut-panel">
                 <p class="panel-heading has-text-centered" style="background-color: ${headingBg};">
                     ${escapeHtml(cat.title)}
                 </p>
-                ${cat.links.map(link => `
-                    <a class="panel-block" href="${escapeAttribute(link.url)}">
-                        <span class="panel-icon"><i class="${escapeAttribute(link.icon || 'fas fa-link')}"></i></span>
-                        ${escapeHtml(link.name)}
-                    </a>
-                `).join('')}
+                <div class="panel-shortcut-body">
+                    <div class="panel-shortcuts">
+                        ${cat.links.map(link => `
+                            <a class="panel-block" href="${escapeAttribute(link.url)}">
+                                <span class="panel-icon"><i class="${escapeAttribute(link.icon || 'fas fa-link')}"></i></span>
+                                ${escapeHtml(link.name)}
+                            </a>
+                        `).join('')}
+                    </div>
+                    ${canFreeze ? `
+                        <button type="button" class="panel-freeze-message" hidden
+                            aria-label="Frozen. Activate three times to unlock for five minutes."
+                            title="Triple-click anywhere on this panel to unlock for five minutes.">
+                            <span><i class="fas fa-snowflake" aria-hidden="true"></i> Frozen</span>
+                            <small>Triple-click to unlock</small>
+                        </button>
+                    ` : ''}
+                </div>
             </nav>
         `;
         grid.appendChild(col);
+        if (canFreeze) wirePanelSchedule(col.firstElementChild, schedule);
     });
+    refreshPanelSchedules();
 
     renderTodoWidget();
     fetchWeather();
@@ -87,6 +186,7 @@ function renderPage() {
 
 function updateTimeandDate() {
     document.getElementById('time-btn').textContent = moment().format('MMMM Do YYYY - h:mm:ss a');
+    refreshPanelSchedules();
 }
 
 async function fetchWeather() {
@@ -409,6 +509,122 @@ function wireTodoWidget() {
 }
 
 // --- Editor Logic ---
+function getScheduleDraft() {
+    if (!scheduleCategory) return null;
+    if (!scheduleDrafts.has(scheduleCategory)) {
+        scheduleDrafts.set(scheduleCategory, readPanelSchedule(scheduleCategory));
+    }
+    return scheduleDrafts.get(scheduleCategory);
+}
+
+function scheduleCategoryLabel(category, index) {
+    return String(category.title ?? '').trim() || `Untitled panel ${index + 1}`;
+}
+
+function formatScheduleTime(block) {
+    const hours = String(Math.floor(block / 2)).padStart(2, '0');
+    return `${hours}:${block % 2 ? '30' : '00'}`;
+}
+
+function renderScheduleWindows() {
+    const schedule = getScheduleDraft();
+    const enabled = document.getElementById('schedule-enabled');
+    enabled.disabled = !schedule;
+    enabled.checked = Boolean(schedule?.enabled);
+    document.getElementById('schedule-controls').hidden = !enabled.checked;
+    document.getElementById('schedule-window-error').textContent = '';
+
+    const windows = schedule?.windows || [];
+    document.getElementById('schedule-no-windows').hidden = windows.length > 0;
+    document.getElementById('schedule-windows').innerHTML = windows.map(({ start, end }, index) => {
+        const range = `${formatScheduleTime(start)}–${formatScheduleTime(end)}${end < start ? ' (next day)' : ''}`;
+        return `
+            <li>
+                <span>${range}</span>
+                <button type="button" class="button is-small" data-window-index="${index}" aria-label="Remove ${range}">Remove</button>
+            </li>
+        `;
+    }).join('');
+}
+
+function renderScheduleEditor() {
+    const select = document.getElementById('schedule-panel');
+    if (!config.categories.includes(scheduleCategory)) scheduleCategory = config.categories[0];
+    select.replaceChildren(...config.categories.map((category, index) =>
+        new Option(scheduleCategoryLabel(category, index), index)
+    ));
+    select.disabled = !scheduleCategory;
+    if (scheduleCategory) select.value = config.categories.indexOf(scheduleCategory);
+    else select.add(new Option('Add a category to set a schedule', ''));
+    renderScheduleWindows();
+}
+
+function wireScheduleEditor() {
+    const panelInput = document.getElementById('schedule-panel');
+    const enabled = document.getElementById('schedule-enabled');
+    const startInput = document.getElementById('schedule-start');
+    const endInput = document.getElementById('schedule-end');
+    const error = document.getElementById('schedule-window-error');
+    const windowList = document.getElementById('schedule-windows');
+
+    for (let block = 0; block <= SCHEDULE_BLOCKS_PER_DAY; block++) {
+        const time = formatScheduleTime(block);
+        if (block < SCHEDULE_BLOCKS_PER_DAY) startInput.add(new Option(time, block));
+        if (block > 0) endInput.add(new Option(time, block));
+    }
+
+    panelInput.addEventListener('change', () => {
+        scheduleCategory = config.categories[Number(panelInput.value)];
+        renderScheduleWindows();
+    });
+    enabled.addEventListener('change', () => {
+        getScheduleDraft().enabled = enabled.checked;
+        renderScheduleWindows();
+    });
+    startInput.addEventListener('change', () => {
+        const start = Number(startInput.value);
+        if (Number(endInput.value) <= start) endInput.value = start + 1;
+        error.textContent = '';
+    });
+    endInput.addEventListener('change', () => { error.textContent = ''; });
+    document.getElementById('schedule-window-form').addEventListener('submit', event => {
+        event.preventDefault();
+        const schedule = getScheduleDraft();
+        if (!schedule?.enabled) return;
+        const start = Number(startInput.value);
+        const end = Number(endInput.value);
+        if (start === end) {
+            error.textContent = 'Choose a different end time.';
+            return;
+        }
+        if (schedule.windows.some(block => block.start === start && block.end === end)) {
+            error.textContent = 'This window is already scheduled.';
+            return;
+        }
+        schedule.windows.push({ start, end });
+        schedule.windows.sort((first, second) => first.start - second.start || first.end - second.end);
+        renderScheduleWindows();
+    });
+    windowList.addEventListener('click', event => {
+        const button = event.target.closest('button[data-window-index]');
+        if (!button) return;
+        const index = Number(button.dataset.windowIndex);
+        getScheduleDraft().windows.splice(index, 1);
+        renderScheduleWindows();
+        const buttons = windowList.querySelectorAll('button');
+        (buttons[index] || buttons[index - 1] || startInput).focus();
+    });
+}
+
+function applyScheduleDrafts(categories) {
+    config.categories.forEach((category, index) => {
+        const draft = scheduleDrafts.get(category);
+        if (!draft) return;
+        if (draft.enabled || draft.windows.length) categories[index].schedule = draft;
+        else delete categories[index].schedule;
+    });
+}
+
 function renderEditor() {
     const list = document.getElementById('menu-editor-list');
     list.innerHTML = '';
@@ -424,7 +640,7 @@ function renderEditor() {
         div.className = 'category-edit-box';
         div.innerHTML = `
             <div class="columns is-mobile is-gapless mb-2">
-                <div class="column"><input class="input is-small" value="${escapeAttribute(cat.title)}" onchange="config.categories[${cIdx}].title=this.value"></div>
+                <div class="column"><input class="input is-small category-title-input" value="${escapeAttribute(cat.title)}"></div>
                 <div class="column is-narrow mx-1"><input type="color" value="${escapeAttribute(cat.color)}" onchange="config.categories[${cIdx}].color=this.value"></div>
                 <div class="column is-narrow">
                     <div style="display:flex; gap:6px;">
@@ -437,6 +653,10 @@ function renderEditor() {
             <div id="links-${cIdx}"></div>
             <button class="button is-small is-fullwidth mt-1" onclick="config.categories[${cIdx}].links.push({name:'',url:'',icon:'fas fa-link'});renderEditor()">+ Link</button>
         `;
+        div.querySelector('.category-title-input').addEventListener('change', event => {
+            cat.title = event.target.value;
+            document.getElementById('schedule-panel').options[cIdx].textContent = scheduleCategoryLabel(cat, cIdx);
+        });
         cat.links.forEach((link, lIdx) => {
             const row = document.createElement('div');
             row.className = 'is-flex mb-1';
@@ -454,6 +674,7 @@ function renderEditor() {
         });
         list.appendChild(div);
     });
+    renderScheduleEditor();
 }
 
 function moveArrayItem(arr, from, to) {
@@ -476,6 +697,7 @@ function moveLink(catIdx, linkIdx, dir) {
 function exportConfig() {
     try {
         const exportable = JSON.parse(JSON.stringify(config));
+        applyScheduleDrafts(exportable.categories);
         const data = JSON.stringify(exportable, null, 2);
         const blob = new Blob([data], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -505,6 +727,7 @@ function handleImportFile(evt) {
             config = parsed;
             config.lambdaTodosEnabled = Boolean(config.lambdaTodosEnabled);
             config.lambdaApiUrl = config.lambdaApiUrl || '';
+            scheduleDrafts.clear();
             localStorage.setItem('PageConfig', JSON.stringify(config));
             renderEditor();
             renderPage();
@@ -520,17 +743,25 @@ function handleImportFile(evt) {
 
 function init() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js?v=2.0.0').catch(() => {});
+        navigator.serviceWorker.register('/sw.js?v=2.1.0').catch(() => {});
     }
     ensureAndIncrementOpenCount();
     wireTodoWidget();
     renderPage();
     updateTimeandDate();
     setInterval(updateTimeandDate, 200);
+    window.addEventListener('pageshow', refreshPanelSchedules);
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) refreshPanelSchedules();
+    });
 
     const mod = document.getElementById('config-modal');
+    wireScheduleEditor();
     document.getElementById('config-btn').onclick = () => { renderEditor(); mod.classList.add('is-active'); };
-    document.getElementById('close-btn').onclick = () => mod.classList.remove('is-active');
+    document.getElementById('close-btn').onclick = () => {
+        scheduleDrafts.clear();
+        mod.classList.remove('is-active');
+    };
     document.getElementById('add-category-btn').onclick = () => { config.categories.push({title:'/new', color:'#3273dc', links:[]}); renderEditor(); };
     document.getElementById('export-btn').onclick = exportConfig;
     document.getElementById('import-file-input').addEventListener('change', handleImportFile);
@@ -540,6 +771,8 @@ function init() {
         config.weatherLon = document.getElementById('lon-input').value;
         config.lambdaTodosEnabled = document.getElementById('todo-enabled-input').checked;
         config.lambdaApiUrl = document.getElementById('todo-api-url-input').value.trim().replace(/\/+$/, '');
+        applyScheduleDrafts(config.categories);
+        scheduleDrafts.clear();
         localStorage.setItem(TODO_API_KEY_STORAGE, document.getElementById('todo-api-key-input').value.trim());
         localStorage.setItem('PageConfig', JSON.stringify(config));
         renderPage();

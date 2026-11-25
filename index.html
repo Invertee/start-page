@@ -5,7 +5,7 @@
     <title>&#3232;&#3263;_&#3232;</title>
     <link rel="stylesheet" href="./vendor/bulma/css/bulma.min.css">
     <link rel="stylesheet" href="./vendor/fa-all.min.css">
-    <link rel="stylesheet" href="./style/style.css?v=2.4.0">
+    <link rel="stylesheet" href="./style/style.css?v=2.5.0">
 </head>
 <body id="body-bg">
 
@@ -103,6 +103,40 @@
                     </div>
                 </div>
                 <hr>
+                <section class="panel-schedule-settings" aria-labelledby="panel-schedule-heading">
+                    <h2 id="panel-schedule-heading" class="label mb-1">Panel schedules</h2>
+                    <p class="help mb-3">Set when a panel’s shortcuts are available each day using your device’s local time.</p>
+                    <div class="field">
+                        <label class="label is-small" for="schedule-panel">Panel</label>
+                        <div class="select is-small is-fullwidth">
+                            <select id="schedule-panel"></select>
+                        </div>
+                    </div>
+                    <label class="checkbox">
+                        <input type="checkbox" id="schedule-enabled">
+                        Freeze outside available windows
+                    </label>
+                    <div id="schedule-controls" class="mt-3" hidden>
+                        <ul id="schedule-windows" aria-label="Available windows"></ul>
+                        <p id="schedule-no-windows" class="help mb-2">This panel is frozen all day until you add an available window.</p>
+                        <form id="schedule-window-form" aria-label="Add an available window">
+                            <div class="field mb-0">
+                                <label class="label is-small" for="schedule-start">Available from</label>
+                                <div class="select is-small">
+                                    <select id="schedule-start"></select>
+                                </div>
+                            </div>
+                            <div class="field mb-0">
+                                <label class="label is-small" for="schedule-end">Until</label>
+                                <div class="select is-small">
+                                    <select id="schedule-end"></select>
+                                </div>
+                            </div>
+                            <button type="submit" class="button is-small is-link is-light">Add window</button>
+                        </form>
+                        <p id="schedule-window-error" class="help is-danger" role="status"></p>
+                    </div>
+                </section>
                 <div class="integration-settings-box">
                     <div class="integration-settings-heading">
                         <div>
@@ -165,7 +199,7 @@
     </div>
 
     <script src="./vendor/moment.min.js"></script>
-    <script src="./js/index.js?v=2.4.0"></script>
+    <script src="./js/index.js?v=2.5.0"></script>
     <script src="./js/podwaffle.js?v=2.2.1"></script>
 </body>
 </html>

@@ -119,6 +119,52 @@ body {
     margin-right: 0.5rem !important;
 }
 
+.shortcut-panel.is-frozen {
+    touch-action: manipulation;
+    user-select: none;
+}
+
+.is-frozen .panel-shortcut-body {
+    position: relative;
+    min-height: 2rem;
+    overflow: hidden;
+    border-radius: 0 0 6px 6px;
+    background:
+        linear-gradient(135deg, rgba(183, 221, 249, 0.22), rgba(59, 106, 142, 0.12), rgba(183, 221, 249, 0.16)),
+        repeating-linear-gradient(0deg, transparent 0, transparent 31px, rgba(220, 240, 255, 0.09) 32px);
+}
+
+.is-frozen .panel-shortcuts {
+    visibility: hidden;
+}
+
+.panel-freeze-message:not([hidden]) {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: #f0f8ff;
+    font: inherit;
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.panel-freeze-message small {
+    font-size: 0.75rem;
+    font-weight: normal;
+}
+
+.panel-freeze-message:focus-visible {
+    outline: 2px solid #c5e8ff;
+    outline-offset: -4px;
+}
+
 /* To-do integration */
 .todo-widget {
     width: min(880px, 100%);
@@ -303,8 +349,9 @@ body {
     color: #ffb3b3;
 }
 
-/* Integration settings */
-.integration-settings-box {
+/* Settings sections */
+.integration-settings-box,
+.panel-schedule-settings {
     padding: 14px;
     background: #f7f7f7;
     border: 1px solid #dedede;
@@ -312,8 +359,26 @@ body {
     color: #363636;
 }
 
-.integration-settings-box + .integration-settings-box {
+.integration-settings-box + .integration-settings-box,
+.panel-schedule-settings + .integration-settings-box {
     margin-top: 12px;
+}
+
+#schedule-window-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.5rem;
+}
+
+#schedule-windows li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    border-bottom: 1px solid #dedede;
+    padding: 0.35rem 0;
+    margin-bottom: 0.5rem;
 }
 
 .integration-settings-heading {
